@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Democratic Shogi, Xiangqi &amp; Tafl</title>
+<style>
+:root{--bg:#f3eee2;--card:#fffaf0;--fg:#241d14;--mut:#6d604f;--line:#c8b999;--acc:#5b45d6;--gold:#d9a93c;--bd:#a9793a;--q1:#ebd29f;--q2:#dfc088;--ok:#1f8a5f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1220;--card:#161d33;--fg:#f1ecdf;--mut:#9aa6c4;--line:#2d3a5f;--bd:#5c3f1b;--q1:#8a6a3a;--q2:#7a5b30;--ok:#4cc3a6;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1220;--card:#161d33;--fg:#f1ecdf;--mut:#9aa6c4;--line:#2d3a5f;--bd:#5c3f1b;--q1:#8a6a3a;--q2:#7a5b30;--ok:#4cc3a6;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+h1{font:800 clamp(1.6rem,4vw,2.3rem)/1.1 Georgia,serif;margin:0}h3{margin:.3em 0;font:700 1.05rem Georgia,serif}
+header,.layout{max-width:1180px;margin:0 auto;padding:16px}header p{color:var(--mut);margin:.4em 0 0;max-width:80ch}
+.layout{display:grid;grid-template-columns:minmax(0,640px) minmax(0,1fr);gap:20px;padding-top:0}
+@media(max-width:960px){.layout{grid-template-columns:1fr}}
+.status{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.pl{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:.85rem}.pl.on{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}.pl span{color:var(--mut)}
+.wrap{position:relative}
+.board{display:grid;grid-template-columns:repeat(var(--c),1fr);background:var(--bd);padding:6px;border-radius:10px;user-select:none;margin:6px 0}
+.sq{aspect-ratio:1;position:relative;display:grid;place-items:center;background:var(--q1);border:1px solid #0002;font-size:calc(min(100vw,640px)/var(--c)*.5)}
+.sq.k{background:var(--q2)}.sq.cor{background:#b5483b55}.sq.thr{background:#6a4fd855}
+.sq.rv{border-bottom:4px solid #0006}
+.sq.last{box-shadow:inset 0 0 0 3px #fff9}.sq.sel{box-shadow:inset 0 0 0 4px var(--acc)}
+.sq.dest::after{content:"";position:absolute;width:26%;height:26%;border-radius:50%;background:var(--ok);opacity:.8}
+.pc{width:86%;height:86%;border-radius:50%;display:grid;place-items:center;font-weight:700;line-height:1;border:2px solid;background:#f7e9c8;z-index:1}
+.pc.o0{color:#a3231b;border-color:#a3231b}.pc.o1{color:#1c2740;border-color:#1c2740;transform:rotate(180deg)}.pc.pr{background:#f0cf8a}
+.pc.ta{background:#222;border-color:#000}.pc.td{background:#f4f1e8;border-color:#555}.pc.tK{background:#d9a93c;border-color:#6b4a00;color:#3a2800}
+.pc.ta,.pc.td,.pc.tK{transform:none}
+.ring{position:absolute;inset:14%;z-index:3;border-radius:50%;background:#f6f2e6;border:3px solid var(--acc);color:#111;font:800 .6em system-ui;display:grid;place-items:center;cursor:pointer;padding:0}
+.ring.on{background:var(--acc);color:#fff}
+.over{position:absolute;inset:0;z-index:6;background:#0b0f1ccc;color:#f1ecdf;border-radius:10px;display:none;place-items:center;text-align:center;padding:16px}.over.show{display:grid}.over h2{font:800 2rem Georgia,serif;margin:0 0 6px}
+.controls{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-top:10px;font-size:.88rem}
+select,button{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:6px 10px}button{cursor:pointer}button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}button.primary:disabled{background:var(--card);color:var(--fg)}
+label{display:flex;gap:6px;align-items:center;color:var(--mut)}
+.hand{display:flex;gap:4px;flex-wrap:wrap;min-height:32px;align-items:center;font-size:.8rem;color:var(--mut)}.hand button{padding:2px 8px}.hand button.on{border-color:var(--acc);background:#5b45d633}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;min-height:420px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.tabs button{border-radius:14px;padding:3px 12px;font-size:.82rem}.tabs button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.tab{display:none;overflow:auto;max-height:640px}.tab.on{display:block}.note{color:var(--mut);font-size:.84rem}
+.opt{display:flex;gap:10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;margin:6px 0;width:100%;text-align:left}.opt.on{border-color:var(--acc);background:#5b45d633}
+.lt{flex:none;width:26px;height:26px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font-weight:800;font-size:.85rem}
+.opt small{display:block;color:var(--mut);font-size:.78rem}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:3px}
+.ln{margin:3px 0;font-size:.86rem}.dim{color:var(--mut)}.chg{font-size:.7rem;padding:1px 6px;border-radius:9px;background:#f0b84a33;color:#c98a1d;margin:0 4px}.win{color:var(--ok);font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:.85rem;margin:6px 0 12px}th,td{padding:4px 6px;border-bottom:1px solid var(--line);text-align:left}th{color:var(--mut);font-weight:500}.n{text-align:right}
+li{margin:.3em 0}ul{padding-left:1.1em}
+</style></head><body>
+<header><h1>Democratic Shogi, Xiangqi &amp; Tafl</h1>
+<p>Real rules, but nobody decides alone. On your turn seven advisors propose moves and you vote from their ballot (or issue an executive order). On its turn the council debates and the voting program you pick decides.</p></header>
+<div class="layout"><section>
+<div class="status" id="status"></div><div class="hand" id="h1"></div>
+<div class="wrap"><div class="board" id="board"></div><div class="over" id="over"></div></div>
+<div class="hand" id="h0"></div>
+<div class="controls">
+<label>Game <select id="game"><option value="s">Democratic Shogi</option><option value="x">Democratic Xiangqi</option><option value="t">Democratic Tafl (Nordic chess)</option></select></label>
+<label>Council program <select id="prog"></select></label>
+<label>First move <select id="first"><option value="0">You</option><option value="1">Council</option></select></label>
+<button id="nb">New game</button><label><input type="checkbox" id="fast">Fast council</label></div>
+<p class="note" id="progDesc"></p></section>
+<aside class="panel"><div class="tabs" id="tabs"><button data-t="ballot" class="on">Ballot</button><button data-t="debate">Debate</button><button data-t="votes">Votes</button><button data-t="moves">Moves</button><button data-t="rules">Rules</button></div>
+<div class="tab on" id="t-ballot"></div><div class="tab" id="t-debate"><p class="note">The council’s debate appears here on its turn.</p></div>
+<div class="tab" id="t-votes"></div><div class="tab" id="t-moves"></div>
+<div class="tab" id="t-rules"><h3>Games</h3><ul>
+<li><b>Shogi:</b> 9×9, captured pieces can be dropped (not two unpromoted pawns in one file, no pawn-drop mate, no dropping where a piece has no move). Promotion in the far three rows is optional, and forced only when the piece would have no moves. You can’t leave your king in check. You are red (bottom). Win by checkmate.</li>
+<li><b>Xiangqi:</b> palace, river, elephant eyes, horse legs, cannons jump to capture; soldiers step sideways only after crossing the river, never backward, and the two generals may not face each other on an open file. You can’t leave your general in check. Win by checkmate or stalemate.</li>
+<li><b>Tafl (Nordic chess / Hnefatafl, 11×11):</b> you are the defenders with the king, the council attacks. Pieces move like rooks, captures are by sandwiching. Only the king may land on the throne or corners. The king escapes to a corner to win; attackers win by surrounding the king on four sides (three plus the throne), and a king on the edge cannot be captured.</li></ul>
+<h3>The democratic layer</h3><ul>
+<li>Advisors: Hawk attacks, Guardian protects, Surveyor wants mobility, Pioneer pushes progress, Treasurer guards material, Trickster is erratic, Pragmatist balances.</li>
+<li>Your turn: vote for a ballot option (or click its lettered ring on the board).</li>
+<li><b>Executive order (free mode):</b> play any legal move with no ballot. You get 3 per game. The council has none.</li>
+<li>Council turn: advisors propose, debate (they can change their minds), then the program decides.</li></ul>
+<p class="note">Not implemented: repetition rules (sennichite, perpetual check or chase in xiangqi) and, in tafl, the Copenhagen shieldwall capture, edge-fort win and encirclement win. A side with no legal move loses.</p></div></aside></div>
+<script>
+const $=id=>document.getElementById(id);
+const DIM={s:[9,9],x:[10,9],t:[11,11]},CORN=[0,10,110,120];
+const SN={K:'王',R:'飛',B:'角',G:'金',S:'銀',N:'桂',L:'香',P:'歩'},PR={R:'竜',B:'馬',S:'全',N:'圭',L:'杏',P:'と'},XN={K:'帥將',A:'仕士',E:'相象',H:'馬馬',R:'車車',C:'炮砲',S:'兵卒'};
+const VS={P:1,L:3,N:3,S:5,G:6,B:8,R:10,K:100},VX={S:1,A:2,E:2,H:4,C:4.5,R:9,K:100},VT={a:1,d:2,K:0},PV={P:6,L:6,N:6,S:6,B:10,R:12};
+let g='s',G={stats:[]};
+const val=p=>g=='s'?(p.p?PV[p.t]:VS[p.t]):g=='x'?VX[p.t]:VT[p.t];
+const gl=p=>g=='s'?(p.t=='K'?(p.o?'玉':'王'):p.p?PR[p.t]:SN[p.t]):g=='x'?XN[p.t][p.o]:p.t=='K'?'♚':'';
+const sq=i=>{const C=DIM[g][1];return 'abcdefghijk'[i%C]+(DIM[g][0]-((i/C)|0))};
+const mn=(s,m)=>(m.drop!=null?SN[m.drop]+'*':(g=='t'?'':gl(s.b[m.f])+' ')+sq(m.f)+(s.b[m.to]?'x':'→'))+sq(m.to)+(m.promo?'+':'');
+function setup(){const R=DIM[g][0],C=DIM[g][1],b=Array(R*C).fill(null),P=(r,c,t,o)=>b[r*C+c]={t,o};
+ if(g=='s'){const k='LNSGKGSNL';for(let c=0;c<9;c++){P(8,c,k[c],0);P(0,c,k[c],1);P(6,c,'P',0);P(2,c,'P',1)}P(7,1,'B',0);P(7,7,'R',0);P(1,1,'R',1);P(1,7,'B',1)}
+ else if(g=='x'){const k='RHEAKAEHR';for(let c=0;c<9;c++){P(9,c,k[c],0);P(0,c,k[c],1)}[1,7].forEach(c=>{P(7,c,'C',0);P(2,c,'C',1)});[0,2,4,6,8].forEach(c=>{P(6,c,'S',0);P(3,c,'S',1)})}
+ else{for(let i=3;i<=7;i++){P(0,i,'a',1);P(10,i,'a',1);P(i,0,'a',1);P(i,10,'a',1)}[[1,5],[9,5],[5,1],[5,9]].forEach(([r,c])=>P(r,c,'a',1));
+  [[3,5],[4,5],[6,5],[7,5],[5,3],[5,4],[5,6],[5,7],[4,4],[4,6],[6,4],[6,6]].forEach(([r,c])=>P(r,c,'d',0));P(5,5,'K',0)}
+ return{b,h:[{},{}]}}
+const O4=[[1,0],[-1,0],[0,1],[0,-1]],D4=[[1,1],[1,-1],[-1,1],[-1,-1]];
+function genSX(s,o){const b=s.b,R=DIM[g][0],out=[],f=o?1:-1,A=(r,c)=>r>=0&&r<R&&c>=0&&c<9;
+ const add=(r,c,y,x)=>{if(!A(y,x))return 0;const t=b[y*9+x];if(t&&t.o==o)return 0;out.push({f:r*9+c,to:y*9+x});return !t};
+ const st=(r,c,L)=>L.forEach(([a,d])=>add(r,c,r+a,c+d)),sl=(r,c,L)=>L.forEach(([a,d])=>{let i=1;while(add(r,c,r+a*i,c+d*i))i++});
+ const pal=(r,c)=>c>=3&&c<=5&&(o?r<=2:r>=7);
+ for(let r=0;r<R;r++)for(let c=0;c<9;c++){const p=b[r*9+c];if(!p||p.o!=o)continue;let t=p.t;const n=out.length;
+  if(g=='s'){if(p.p&&'PLNS'.includes(t))t='G';
+   if(t=='K')st(r,c,[...O4,...D4]);else if(t=='G')st(r,c,[[f,-1],[f,0],[f,1],[0,-1],[0,1],[-f,0]]);
+   else if(t=='S')st(r,c,[[f,-1],[f,0],[f,1],[-f,-1],[-f,1]]);else if(t=='N')st(r,c,[[2*f,-1],[2*f,1]]);
+   else if(t=='L')sl(r,c,[[f,0]]);else if(t=='P')st(r,c,[[f,0]]);
+   else if(t=='R'){sl(r,c,O4);if(p.p)st(r,c,D4)}else if(t=='B'){sl(r,c,D4);if(p.p)st(r,c,O4)}
+   if(!p.p&&'PLNSRB'.includes(p.t)){const z=x=>o?x>=6:x<=2,L=out.length;for(let i=n;i<L;i++){const y=(out[i].to/9)|0;if(z(r)||z(y)){const dead=((p.t=='P'||p.t=='L')&&y==(o?8:0))||(p.t=='N'&&(o?y>=7:y<=1)),m2={...out[i],promo:1};if(dead)out[i]=m2;else out.push(m2)}}}
+  }else{
+   if(t=='K')O4.forEach(([a,d])=>{if(pal(r+a,c+d))add(r,c,r+a,c+d)});
+   else if(t=='A')D4.forEach(([a,d])=>{if(pal(r+a,c+d))add(r,c,r+a,c+d)});
+   else if(t=='E')D4.forEach(([a,d])=>{const y=r+2*a,x=c+2*d;if(A(y,x)&&!b[(r+a)*9+c+d]&&(o?y<=4:y>=5))add(r,c,y,x)});
+   else if(t=='H')O4.forEach(([a,d])=>{if(!A(r+a,c+d)||b[(r+a)*9+c+d])return;(a?[[2*a,-1],[2*a,1]]:[[-1,2*d],[1,2*d]]).forEach(([x,y])=>add(r,c,r+x,c+y))});
+   else if(t=='R')sl(r,c,O4);
+   else if(t=='C')O4.forEach(([a,d])=>{let i=1;while(A(r+a*i,c+d*i)&&!b[(r+a*i)*9+c+d*i]){out.push({f:r*9+c,to:(r+a*i)*9+c+d*i});i++}
+    i++;while(A(r+a*i,c+d*i)){const q=b[(r+a*i)*9+c+d*i];if(q){if(q.o!=o)out.push({f:r*9+c,to:(r+a*i)*9+c+d*i});break}i++}});
+   else if(t=='S')st(r,c,(o?r>=5:r<=4)?[[f,0],[0,-1],[0,1]]:[[f,0]])}}
+ if(g=='s')for(const t in s.h[o])if(s.h[o][t]>0)for(let i=0;i<81;i++){const r=(i/9)|0;if(b[i])continue;
+  if((t=='P'||t=='L')&&r==(o?8:0))continue;if(t=='N'&&(o?r>=7:r<=1))continue;out.push({drop:t,to:i})}
+ return out}
+function genT(s,o){const b=s.b,out=[];
+ for(let i=0;i<121;i++){const p=b[i];if(!p||p.o!=o)continue;const r=(i/11)|0,c=i%11;
+  for(const[a,d]of O4){let y=r+a,x=c+d;while(y>=0&&y<11&&x>=0&&x<11){const t=y*11+x;if(b[t])break;
+   if(p.t!='K'&&CORN.includes(t))break;
+   if(!(p.t!='K'&&t==60))out.push({f:i,to:t});y+=a;x+=d}}}
+ return out}
+const pgen=(s,o)=>g=='t'?genT(s,o):genSX(s,o);
+function attacked(s,o){let k=-1,q=-1;s.b.forEach((p,i)=>{if(p&&p.t=='K'){if(p.o==o)k=i;else q=i}});if(k<0)return true;
+ if(g=='x'&&q>=0&&q%9==k%9){let f=1;for(let a=Math.min(k,q)+9;a<Math.max(k,q);a+=9)if(s.b[a]){f=0;break}if(f)return true}
+ return genSX(s,1-o).some(m=>m.to==k)}
+const lb=(s,o)=>pgen(s,o).filter(m=>!attacked(apply(s,m,o),o));
+function legal(s,o){if(g=='t')return genT(s,o);let mv=lb(s,o);
+ if(g=='s')mv=mv.filter(m=>{if(m.drop!='P')return true;if(s.b.some((p,i)=>p&&p.o==o&&p.t=='P'&&!p.p&&i%9==m.to%9))return false;const s1=apply(s,m,o);return !(attacked(s1,1-o)&&!lb(s1,1-o).length)});
+ return mv}
+function apply(s,m,o){const b=s.b.slice();let cv=0;
+ if(g=='t'){const p=b[m.f];b[m.f]=null;b[m.to]=p;const r=(m.to/11)|0,c=m.to%11;
+  for(const[a,d]of O4){const y=r+a,x=c+d,y2=y+a,x2=x+d;if(y<0||y>10||x<0||x>10)continue;const n=y*11+x,q=b[n];if(!q||q.o==o)continue;
+   if(q.t=='K'){if(o!=1||y==0||y==10||x==0||x==10)continue;
+    if(O4.every(([e,f])=>{const k=(y+e)*11+x+f,w=b[k];return w?w.o==1:k==60})){b[n]=null;cv=100}}
+   else if(y2>=0&&y2<=10&&x2>=0&&x2<=10){const n2=y2*11+x2,z=b[n2];if(z?z.o==o:(CORN.includes(n2)||n2==60)){b[n]=null;cv+=val(q)}}}
+  return{b,h:s.h,cv}}
+ const h=[{...s.h[0]},{...s.h[1]}];let p;
+ if(m.drop!=null){p={t:m.drop,o};h[o][m.drop]--}else{p=b[m.f];b[m.f]=null;if(m.promo)p={t:p.t,o,p:1}}
+ const q=b[m.to];if(q){cv=val(q);if(g=='s'&&q.t!='K')h[o][q.t]=(h[o][q.t]||0)+1}
+ b[m.to]=p;return{b,h,cv}}
+function win(s){const k=[0,0];let ki=-1;s.b.forEach((p,i)=>{if(p&&p.t=='K'){k[p.o]=1;ki=i}});
+ if(g=='t')return !k[0]?1:CORN.includes(ki)?0:-1;return !k[0]?1:!k[1]?0:-1}
+function mat(s,o){let t=0;s.b.forEach(p=>{if(p&&p.o==o&&val(p)<100)t+=val(p)});if(g=='s')for(const k in s.h[o])t+=VS[k]*s.h[o][k];return t}
+function prog(s,o){const R=DIM[g][0],C=DIM[g][1];
+ if(g=='t'){const kp=s.b.findIndex(p=>p&&p.t=='K');if(kp<0)return o?30:-30;const kr=(kp/11)|0,kc=kp%11,dc=Math.min(kr+kc,kr+10-kc,10-kr+kc,20-kr-kc);
+  if(o==0)return 20-dc;let n=0;s.b.forEach((p,i)=>{if(p&&p.o==1&&Math.max(Math.abs(((i/11)|0)-kr),Math.abs(i%11-kc))<=2)n++});return dc+n}
+ let t=0;s.b.forEach((p,i)=>{if(p&&p.o==o&&p.t!='K'){const r=(i/C)|0;t+=(o?r:R-1-r)*.3+(p.p?2:0)}});return t}
+function fm(s,m,o){const s1=apply(s,m,o);if(win(s1)==o)return'W';if(g!='t'&&attacked(s1,1-o)&&!legal(s1,1-o).length)return'W';
+ const opp=pgen(s1,1-o),mine=pgen(s1,o);let loss=0,thr=0;
+ for(const r of opp){const x=apply(s1,r,1-o).cv;if(x>loss)loss=x}
+ for(const r of mine)if(apply(s1,r,o).cv>0)thr++;
+ return[mat(s1,o)-mat(s1,1-o),mine.length-opp.length,loss,prog(s1,o)-.5*prog(s1,1-o),s1.cv,thr]}
+const ADV=[
+ {n:'Hawk',c:'#e5534b',p:.35,w:[4,.03,-1.5,.1,6,1.5]},{n:'Guardian',c:'#4a9be0',p:.6,w:[4,.05,-6,.1,2,.3]},
+ {n:'Surveyor',c:'#35b36b',p:.5,w:[3,.25,-2,.2,2,.3]},{n:'Pioneer',c:'#a35be0',p:.5,w:[3,.04,-2,1,2,.2]},
+ {n:'Treasurer',c:'#e8a73a',p:.4,w:[8,.02,-3,.05,5,.5]},{n:'Trickster',c:'#e0589a',p:.7,w:[5,.1,-3,.4,3,.7]},
+ {n:'Pragmatist',c:'#4fc3d9',p:.55,w:[5,.08,-3,.4,3,.7]}];
+const WHY=['leans on the opponent','keeps our pieces safe','opens up mobility','pushes for progress','guards our material','has a hunch','is the solid choice'];
+const why=(f,k)=>f=='W'?'wins the game':f[4]>0&&k!=5?'captures material':WHY[k];
+function analyze(s,o){const mv=legal(s,o),F=mv.map(m=>fm(s,m,o));
+ const sc=ADV.map((a,k)=>{const w=k==5?a.w.map(x=>x*(.4+Math.random()*1.2)):a.w;
+  return F.map(f=>f=='W'?1000:f.reduce((t,x,j)=>t+x*w[j],0)+(k==5?(Math.random()-.5)*6:0)+Math.random()*1e-3)});
+ return{mv,sc,F}}
+const PROGS={plurality:['Plurality','Most first-choice votes wins.'],borda:['Borda count','Every rank on every ballot earns points.'],approval:['Approval','Approve every move nearly as good as your favourite.'],
+ consensus:['Consensus','Play the move the most-unhappy advisor dislikes least.'],dictator:['Rotating dictator','One advisor decides alone each turn.'],lottery:['Lottery','A randomly drawn advisor’s favourite is played.']};
+function holdCouncil(s,o,prog,turn){const{mv,sc,F}=analyze(s,o),n=mv.length;
+ const norm=sc.map(a=>{const lo=Math.min(...a),r=Math.max(...a)-lo||1;return a.map(x=>(x-lo)/r)});
+ const ranks=norm.map(a=>[...a.keys()].sort((x,y)=>a[y]-a[x])),props=ranks.map(r=>r[0]),tot=i=>norm.reduce((t,a)=>t+a[i],0);
+ const best=c=>c.reduce((x,y)=>tot(y)>tot(x)?y:x),c0=new Array(n).fill(0);ranks.forEach(r=>c0[r[0]]++);
+ const lead=c0.reduce((x,y,i)=>y>c0[x]||(y===c0[x]&&tot(i)>tot(x))?i:x,0);
+ const changed=ADV.map((a,k)=>{if(ranks[k][0]===lead)return false;
+  if(Math.random()<a.p*(norm[k][lead]>=.7?1:.12)){ranks[k].splice(ranks[k].indexOf(lead),1);ranks[k].unshift(lead);return true}return false});
+ const fin=ranks.map(r=>r[0]),pos=ranks.map(r=>{const p=[];r.forEach((x,i)=>p[x]=i);return p});
+ const metric=new Array(n).fill(0),all=[...Array(n).keys()];let unit,label;
+ if(prog=='plurality'){fin.forEach(i=>metric[i]++);unit='votes';label=m=>`${m}/7 votes`}
+ else if(prog=='borda'){pos.forEach(p=>p.forEach((q,i)=>metric[i]+=n-1-q));unit='points';label=m=>`${m} Borda points`}
+ else if(prog=='approval'){norm.forEach(a=>a.forEach((x,i)=>{if(x>=.85)metric[i]++}));unit='approvals';label=m=>`approved by ${m}/7`}
+ else if(prog=='consensus'){all.forEach(i=>metric[i]=-Math.max(...norm.map(a=>1-a[i])));unit='regret';label=m=>`worst-off advisor regret ${Math.round(-m*100)}%`}
+ else if(prog=='dictator'){const d=turn%7;metric[fin[d]]=1;unit='dictator';label=()=>`${ADV[d].n} decides alone`}
+ else{const d=Math.random()*7|0;metric[fin[d]]=1;unit='draw';label=()=>`lottery drew ${ADV[d].n}`}
+ const mx=Math.max(...metric),win=best(all.filter(i=>metric[i]===mx));
+ return{mv,F,n,props,fin,changed,win,metric,label,unit}}
+// ---------- UI
+const NAMES=()=>g=='t'?['You (defenders)','Council (attackers)']:['You (red, bottom)','Council (blue, top)'];
+function drawBoard(){const[R,C]=DIM[g],s=G.s;let h='';const bd=$('board');bd.style.setProperty('--c',C);
+ const selM=G.sel!=null&&G.opts?G.opts[G.sel].m:G.wi,dests=new Set();
+ if(G.wiFrom!=null)G.wiMoves.filter(m=>m.f==G.wiFrom).forEach(m=>dests.add(m.to));
+ if(G.wiDrop)G.wiMoves.filter(m=>m.drop==G.wiDrop).forEach(m=>dests.add(m.to));
+ for(let i=0;i<R*C;i++){const p=s.b[i],r=(i/C)|0,c=i%C,cl=['sq'];
+  if((r+c)%2)cl.push('k');if(g=='x'&&r==4)cl.push('rv');if(g=='t'&&CORN.includes(i))cl.push('cor');if(g=='t'&&i==60)cl.push('thr');
+  if(G.last&&(G.last[0]===i||G.last[1]===i))cl.push('last');
+  if((selM&&(selM.f===i))||G.wiFrom===i)cl.push('sel');if(dests.has(i))cl.push('dest');
+  const ring=G.opts&&!G.writeIn?G.opts.map((o,k)=>o.m.to===i?`<button class="ring ${k===G.sel?'on':''}" data-i="${k}">${'ABCDEF'[k]}</button>`:'').join(''):'';
+  h+=`<div class="${cl.join(' ')}" data-i="${i}">${p?`<span class="pc ${g=='t'?'t'+p.t:'o'+p.o} ${p.p?'pr':''}">${gl(p)}</span>`:''}${ring}</div>`}
+ bd.innerHTML=h;
+ [0,1].forEach(o=>{$('h'+o).innerHTML=g=='s'?`${NAMES()[o].split(' ')[0]} hand: `+(Object.keys(s.h[o]).filter(t=>s.h[o][t]>0).map(t=>`<button data-hd="${t}" class="${G.wiDrop==t&&o==0?'on':''}" ${o==0&&G.writeIn?'':'disabled'}>${SN[t]}×${s.h[o][t]}</button>`).join('')||'—'):''})}
+function status(){$('status').innerHTML=[0,1].map(o=>`<div class="pl ${G.turn===o&&!G.over?'on':''}"><b>${NAMES()[o]}</b><br><span>${G.s.b.filter(p=>p&&p.o==o).length} pieces${o==0?' · executive orders '+G.ex+'/3':''}</span></div>`).join('')}
+function tab(t){document.querySelectorAll('.tab').forEach(e=>e.classList.toggle('on',e.id==='t-'+t));document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t))}
+$('tabs').onclick=e=>{if(e.target.dataset.t)tab(e.target.dataset.t)};
+function newGame(){g=$('game').value;G.s=setup();G.over=0;G.last=null;G.sel=null;G.opts=null;G.wi=null;G.wiFrom=null;G.wiDrop=null;G.writeIn=false;G.history=[];G.ex=3;G.n=0;G.lastVote=null;
+ G.stats=ADV.map(()=>({w:0,t:0,f:0}));G.turn=+$('first').value;$('over').classList.remove('show');
+ drawBoard();status();renderMoves();renderVotes();$('t-debate').innerHTML='<p class="note">The council’s debate appears here on its turn.</p>';clearTimeout(G.tm);startTurn()}
+function startTurn(){if(G.over)return;status();if(!legal(G.s,G.turn).length)return finish(1-G.turn,g=='t'?'no legal moves':attacked(G.s,G.turn)?'checkmate':'stalemate');G.turn===0?playerBallot():councilTurn()}
+function playerBallot(){tab('ballot');const{mv,sc,F}=analyze(G.s,0),n=mv.length;
+ const norm=sc.map(a=>{const lo=Math.min(...a),r=Math.max(...a)-lo||1;return a.map(x=>(x-lo)/r)}),first=norm.map(a=>a.indexOf(Math.max(...a)));
+ const tot=i=>norm.reduce((t,a)=>t+a[i],0),groups={};first.forEach((m,k)=>(groups[m]=groups[m]||[]).push(k));
+ let list=Object.keys(groups).map(Number).sort((a,b)=>groups[b].length-groups[a].length||tot(b)-tot(a));
+ if(list.length<4)for(const i of[...Array(n).keys()].sort((a,b)=>tot(b)-tot(a)))if(!list.includes(i)&&list.length<4)list.push(i);
+ list=list.slice(0,6);
+ G.opts=list.map(i=>{const adv=groups[i]||[];return{m:mv[i],adv,txt:mn(G.s,mv[i]),reasons:(adv.length?adv:[6]).slice(0,2).map(k=>`${ADV[k].n}: ${why(F[i],k)}`)}});
+ G.sel=null;G.wi=null;G.wiFrom=null;G.wiDrop=null;G.wiMoves=mv;G.writeIn=false;
+ $('t-ballot').innerHTML=`<p class="note">Your seven advisors propose. <b>Pick one and cast your vote</b>, or click a lettered ring on the board.</p><div id="opts">${G.opts.map((o,i)=>`<button class="opt" data-i="${i}"><span class="lt">${'ABCDEF'[i]}</span><span><b>${o.txt}</b> ${o.adv.map(k=>`<span class="dot" style="background:${ADV[k].c}"></span>`).join('')}<small>${o.reasons.join(' · ')}</small></span></button>`).join('')}</div>
+ <button id="wi" ${G.ex?'':'disabled'}>Executive order (free move): ${G.ex} left</button> <button class="primary" id="cast" disabled>Cast my vote</button><p class="note" id="wiNote"></p>`;
+ $('opts').onclick=e=>{const b=e.target.closest('.opt');if(b)pick(+b.dataset.i)};
+ $('wi').onclick=()=>{G.writeIn=!G.writeIn;G.sel=null;G.wi=null;G.wiFrom=null;G.wiDrop=null;$('wiNote').textContent=G.writeIn?'Executive order: click one of your pieces (or a hand piece), then a dot.':'';refresh()};
+ $('cast').onclick=cast;
+ $('wiNote').onclick=e=>{const b=e.target.closest('[data-pm]');if(b&&G.wiPend){const m=G.wiPend[+b.dataset.pm];G.wiPend=null;G.wi=m;G.wiFrom=null;G.wiDrop=null;G.writeIn=false;$('wiNote').textContent='Executive order: '+mn(G.s,m);refresh()}};drawBoard()}
+function refresh(){document.querySelectorAll('.opt').forEach((o,i)=>o.classList.toggle('on',i===G.sel));$('cast').disabled=G.sel==null&&!G.wi;drawBoard()}
+function pick(i){G.sel=i;G.wi=null;G.writeIn=false;G.wiFrom=null;G.wiDrop=null;if($('wiNote'))$('wiNote').textContent='';refresh()}
+function cast(){const m=G.sel!=null?G.opts[G.sel].m:G.wi;if(!m)return;let how;
+ if(G.sel!=null){const o=G.opts[G.sel];how=`ballot ${'ABCDEF'[G.sel]}`+(o.adv.length?' · backed by '+o.adv.map(k=>ADV[k].n).join(', '):'')}else{G.ex--;how='executive order (no vote)'}
+ G.opts=null;G.sel=null;G.wi=null;G.wiFrom=null;G.wiDrop=null;$('t-ballot').innerHTML='<p class="note">Vote cast. The council is up.</p>';doMove(m,0,how)}
+$('board').addEventListener('click',e=>{if(G.over||G.turn!==0||!G.opts)return;
+ const rg=e.target.closest('.ring');if(rg&&!G.writeIn){pick(+rg.dataset.i);return}
+ if(!G.writeIn)return;const q=e.target.closest('.sq');if(!q)return;const i=+q.dataset.i,p=G.s.b[i];
+ if(p&&p.o==0&&G.wiMoves.some(m=>m.f===i)){G.wiFrom=i;G.wiDrop=null;G.wi=null}
+ else{const ms=G.wiMoves.filter(m=>m.to===i&&(G.wiFrom!=null?m.f===G.wiFrom:m.drop!=null&&m.drop==G.wiDrop));
+  if(ms.length>1){G.wiPend=ms;$('wiNote').innerHTML=ms.map((m,k)=>`<button data-pm="${k}">${m.promo?'Promote':'Don’t promote'}</button>`).join(' ')}
+  else if(ms.length){const m=ms[0];G.wi=m;G.wiFrom=null;G.wiDrop=null;G.writeIn=false;$('wiNote').textContent='Executive order: '+mn(G.s,m)}}
+ refresh()});
+$('h0').onclick=e=>{const b=e.target.closest('[data-hd]');if(b&&G.writeIn){G.wiDrop=b.dataset.hd;G.wiFrom=null;G.wi=null;refresh()}};
+function councilTurn(){tab('debate');const prog=$('prog').value,R=holdCouncil(G.s,1,prog,G.n),mv=R.mv,L=[];
+ const nm=k=>`<b style="color:${ADV[k].c}">${ADV[k].n}</b>`,M=i=>mn(G.s,mv[i]);
+ L.push('<div class="ln dim">Council convenes. Each advisor proposes.</div>');
+ ADV.forEach((a,k)=>L.push(`<div class="ln">${nm(k)} ${M(R.props[k])} <span class="dim">— ${why(R.F[R.props[k]],k)}.</span></div>`));
+ L.push(`<div class="ln dim">Program: ${PROGS[prog][0]}. ${PROGS[prog][1]}</div><div class="ln dim">Debate: argue and lock in final votes.</div>`);
+ ADV.forEach((a,k)=>L.push(`<div class="ln">${nm(k)} ${R.changed[k]?`<span class="chg">changed mind</span> Changed to ${M(R.fin[k])}.`:`Sticking with ${M(R.fin[k])}.`}</div>`));
+ L.push(`<div class="ln win">${M(R.win)} wins: ${R.label(R.metric[R.win])}.</div>`);
+ $('t-debate').innerHTML='';let i=0;const dly=$('fast').checked?40:300;
+ const step=()=>{if(i<L.length){$('t-debate').insertAdjacentHTML('beforeend',L[i++]);$('t-debate').scrollTop=1e5;G.tm=setTimeout(step,dly)}else{
+  ADV.forEach((a,k)=>{const x=G.stats[k];x.t++;if(R.fin[k]===R.win)x.w++;if(R.changed[k])x.f++});renderVotes({R,M});
+  doMove(mv[R.win],1,`${PROGS[prog][0]}: ${R.label(R.metric[R.win])}`)}};
+ G.tm=setTimeout(step,150)}
+function doMove(m,o,info){const s=G.s;G.history.push({o,txt:mn(s,m),info});G.n++;G.last=[m.f,m.to];G.s=apply(s,m,o);drawBoard();status();renderMoves();
+ const w=win(G.s);if(w>=0)return finish(w,g=='t'?(w==0?'the king escaped':'the king was captured'):'the king was captured');
+ G.turn=1-o;G.tm=setTimeout(startTurn,o==0?250:400)}
+function finish(w,why_){G.over=1;status();$('over').innerHTML=`<div><h2>${w==0?'You win!':'The council wins'}</h2><p>${why_}.</p><p>See the Votes tab for the democracy report.</p><button class="primary" id="again">Play again</button></div>`;
+ $('over').classList.add('show');$('again').onclick=newGame;renderVotes();tab('votes')}
+function renderMoves(){$('t-moves').innerHTML=G.history.length?`<table><tr><th>#</th><th>Side</th><th>Move</th><th>How</th></tr>${G.history.map((h,i)=>`<tr><td>${i+1}</td><td>${h.o==0?'You':'Council'}</td><td>${h.txt}</td><td class="note">${h.info||''}</td></tr>`).join('')}</table>`:'<p class="note">No moves yet.</p>'}
+function renderVotes(v){if(v)G.lastVote=v;v=G.lastVote;let h='';
+ if(v){const{R,M}=v,idx=[...R.metric.keys()].filter(i=>R.metric[i]!==0||R.fin.includes(i)).sort((a,b)=>R.metric[b]-R.metric[a]).slice(0,6);
+  h+=`<h3>Latest council vote</h3><table><tr><th>Move</th><th>Backed by (final)</th><th class="n">${R.unit}</th></tr>${idx.map(i=>`<tr><td>${i===R.win?'★ ':''}${M(i)}</td><td>${ADV.map((a,k)=>R.fin[k]===i?`<span class="dot" style="background:${a.c}" title="${a.n}"></span>`:'').join('')}</td><td class="n">${R.unit==='regret'?Math.round(-R.metric[i]*100)+'%':R.metric[i]}</td></tr>`).join('')}</table>`}
+ h+=`<h3>Advisor loyalty</h3><table><tr><th>Advisor</th><th class="n">With council</th><th class="n">Changed mind</th></tr>${ADV.map((a,k)=>{const x=G.stats[k];return`<tr><td><span class="dot" style="background:${a.c}"></span>${a.n}</td><td class="n">${x.t?Math.round(100*x.w/x.t)+'%':'-'}</td><td class="n">${x.f}</td></tr>`}).join('')}</table><p class="note">“With council” is how often the advisor’s final vote matched the move played.</p>`;
+ $('t-votes').innerHTML=h}
+$('prog').innerHTML=Object.entries(PROGS).map(([k,v])=>`<option value="${k}">${v[0]}</option>`).join('');
+$('prog').onchange=()=>$('progDesc').textContent=PROGS[$('prog').value][1];$('prog').onchange();
+$('game').onchange=newGame;$('nb').onclick=newGame;newGame();
+</script></body></html>
